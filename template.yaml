@@ -1,0 +1,232 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+  Generator: "former2"
+Description: ""
+
+Parameters:
+  env:
+    Type: "String"
+    Default: "local"
+
+Resources:
+  S3BucketStageLogs:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${env}-archipelago-build-log"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - "GET"
+            AllowedOrigins:
+              - "https://*.archipelago.build"
+              - "http://localhost:3000"
+              - "http://localhost"
+
+  S3BucketPackagesLogs:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${env}-archipelago-build-packages-log"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - "GET"
+            AllowedOrigins:
+              - "https://*.archipelago.build"
+              - "http://localhost:3000"
+              - "http://localhost"
+
+  DynamoDBPackagesBuildsGit:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "lookup-key"
+          AttributeType: "S"
+      TableName: !Sub "${env}.packages-builds-git"
+      KeySchema:
+        - AttributeName: "lookup-key"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBBuildsPackages:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "build-id"
+          AttributeType: "S"
+        - AttributeName: "package"
+          AttributeType: "S"
+      TableName: !Sub "${env}.builds-packages"
+      KeySchema:
+        - AttributeName: "build-id"
+          KeyType: "HASH"
+        - AttributeName: "package"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBBuilds:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "account-id"
+          AttributeType: "S"
+        - AttributeName: "build-id"
+          AttributeType: "S"
+      TableName: !Sub "${env}.builds"
+      KeySchema:
+        - AttributeName: "account-id"
+          KeyType: "HASH"
+        - AttributeName: "build-id"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBPackagesVersions:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "package-name"
+          AttributeType: "S"
+        - AttributeName: "version"
+          AttributeType: "S"
+      TableName: !Sub "${env}.packages-versions"
+      KeySchema:
+        - AttributeName: "package-name"
+          KeyType: "HASH"
+        - AttributeName: "version"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBPackages:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "account-id"
+          AttributeType: "S"
+        - AttributeName: "package-name"
+          AttributeType: "S"
+      TableName: !Sub "${env}.packages"
+      KeySchema:
+        - AttributeName: "account-id"
+          KeyType: "HASH"
+        - AttributeName: "package-name"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBAccountMapping:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "user-id"
+          AttributeType: "S"
+      TableName: !Sub "${env}.account-mapping"
+      KeySchema:
+        - AttributeName: "user-id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBPackagesBuilds:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "hash"
+          AttributeType: "S"
+        - AttributeName: "name-version"
+          AttributeType: "S"
+      TableName: !Sub "${env}.packages-builds"
+      KeySchema:
+        - AttributeName: "name-version"
+          KeyType: "HASH"
+        - AttributeName: "hash"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBAccounts:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "account-id"
+          AttributeType: "S"
+      TableName: !Sub "${env}.accounts"
+      KeySchema:
+        - AttributeName: "account-id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBVersionSetRevisions:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "key"
+          AttributeType: "S"
+        - AttributeName: "revision"
+          AttributeType: "S"
+      TableName: !Sub "${env}.version-set-revisions"
+      KeySchema:
+        - AttributeName: "key"
+          KeyType: "HASH"
+        - AttributeName: "revision"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBVersionSets:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "account-id"
+          AttributeType: "S"
+        - AttributeName: "version-set-name"
+          AttributeType: "S"
+      TableName: !Sub "${env}.version-sets"
+      KeySchema:
+        - AttributeName: "account-id"
+          KeyType: "HASH"
+        - AttributeName: "version-set-name"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBAccountsGit:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "account-id"
+          AttributeType: "S"
+      TableName: !Sub "${env}.accounts-git"
+      KeySchema:
+        - AttributeName: "account-id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  SQSQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      DelaySeconds: "0"
+      MaximumMessageSize: "262144"
+      MessageRetentionPeriod: "345600"
+      ReceiveMessageWaitTimeSeconds: "0"
+      VisibilityTimeout: "30"
+      QueueName: !Sub "${env}-archipelago-build-queue"
