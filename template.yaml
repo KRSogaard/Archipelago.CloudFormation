@@ -9,35 +9,334 @@ Parameters:
     Default: "local"
 
 Resources:
+  IAMUserVersionSetServer:
+    Type: "AWS::IAM::User"
+    Properties:
+      Path: "/"
+      UserName: !Sub "archipelago-${env}-version-set-service"
+      ManagedPolicyArns:
+        - !Ref IAMManagedPolicyVersionSetService
+
+  IAMManagedPolicyVersionSetService:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "archipelago-${env}-policy-version-set-service"
+      Path: "/"
+      PolicyDocument: !Sub |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "IAMManagedPolicyVersionSetService0",
+                    "Effect": "Allow",
+                    "Action": [
+                        "dynamodb:DeleteItem",
+                        "dynamodb:DescribeContributorInsights",
+                        "dynamodb:ListTagsOfResource",
+                        "dynamodb:PartiQLSelect",
+                        "dynamodb:DescribeTable",
+                        "dynamodb:GetItem",
+                        "dynamodb:DescribeContinuousBackups",
+                        "dynamodb:DescribeExport",
+                        "dynamodb:DescribeKinesisStreamingDestination",
+                        "dynamodb:BatchGetItem",
+                        "dynamodb:BatchWriteItem",
+                        "dynamodb:ConditionCheckItem",
+                        "dynamodb:PutItem",
+                        "dynamodb:Scan",
+                        "dynamodb:Query",
+                        "dynamodb:DescribeStream",
+                        "dynamodb:UpdateItem",
+                        "dynamodb:DescribeTimeToLive",
+                        "dynamodb:DescribeGlobalTableSettings",
+                        "dynamodb:GetShardIterator",
+                        "dynamodb:DescribeGlobalTable",
+                        "dynamodb:DescribeBackup",
+                        "dynamodb:GetRecords",
+                        "dynamodb:DescribeTableReplicaAutoScaling"
+                    ],
+                    "Resource": [
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBVersionSets}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBVersionSetRevisions}"
+                    ]
+                }
+            ]
+        }
+
+  IAMUserPackageService:
+    Type: "AWS::IAM::User"
+    Properties:
+      Path: "/"
+      UserName: !Sub "archipelago-${env}-package-service"
+      ManagedPolicyArns:
+        - !Ref IAMManagedPolicyPackageService
+
+  IAMManagedPolicyPackageService:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "archipelago-${env}-policy-package-service"
+      Path: "/"
+      PolicyDocument: !Sub |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "IAMManagedPolicyPackageService0",
+                    "Effect": "Allow",
+                    "Action": [
+                        "s3:*",
+                        "dynamodb:DeleteItem",
+                        "dynamodb:DescribeContributorInsights",
+                        "dynamodb:ListTagsOfResource",
+                        "dynamodb:PartiQLSelect",
+                        "dynamodb:DescribeTable",
+                        "dynamodb:GetItem",
+                        "dynamodb:DescribeContinuousBackups",
+                        "dynamodb:DescribeExport",
+                        "dynamodb:DescribeKinesisStreamingDestination",
+                        "dynamodb:BatchGetItem",
+                        "dynamodb:BatchWriteItem",
+                        "dynamodb:ConditionCheckItem",
+                        "dynamodb:PutItem",
+                        "dynamodb:Scan",
+                        "dynamodb:Query",
+                        "dynamodb:DescribeStream",
+                        "dynamodb:UpdateItem",
+                        "dynamodb:DescribeTimeToLive",
+                        "dynamodb:DescribeGlobalTableSettings",
+                        "dynamodb:GetShardIterator",
+                        "dynamodb:DescribeGlobalTable",
+                        "dynamodb:DescribeBackup",
+                        "dynamodb:GetRecords",
+                        "dynamodb:DescribeTableReplicaAutoScaling"
+                    ],
+                    "Resource": [
+                        "arn:aws:s3:::*",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackages}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesBuildsGit}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesBuilds}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesVersions}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountsGit}"
+                    ]
+                }
+            ]
+        }
+
+  IAMUserBuildServerAPI:
+    Type: "AWS::IAM::User"
+    Properties:
+      Path: "/"
+      UserName: !Sub "archipelago-${env}-build-server-api"
+      ManagedPolicyArns:
+        - !Ref IAMManagedPolicyBuildServerAPI
+
+  IAMManagedPolicyBuildServerAPI:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "archipelago-${env}-policy-build-server-api"
+      Path: "/"
+      PolicyDocument: !Sub |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "IAMManagedPolicyBuildServerAPI0",
+                    "Effect": "Allow",
+                    "Action": [
+                      "sqs:DeleteMessage",
+                      "sqs:SendMessageBatch",
+                      "sqs:ReceiveMessage",
+                      "sqs:ListQueueTags",
+                      "sqs:DeleteMessageBatch",
+                      "sqs:ChangeMessageVisibilityBatch",
+                      "sqs:SetQueueAttributes",
+                      "sqs:GetQueueUrl",
+                      "sqs:ChangeMessageVisibility",
+                      "sqs:SendMessage",
+                      "sqs:GetQueueAttributes",
+                      "sqs:ListDeadLetterSourceQueues",
+                      "sqs:PurgeQueue",
+                      "sqs:DeleteQueue",
+                      "sqs:CreateQueue",
+                      "dynamodb:DeleteItem",
+                      "dynamodb:DescribeContributorInsights",
+                      "dynamodb:ListTagsOfResource",
+                      "dynamodb:PartiQLSelect",
+                      "dynamodb:DescribeTable",
+                      "dynamodb:GetItem",
+                      "dynamodb:DescribeContinuousBackups",
+                      "dynamodb:DescribeExport",
+                      "dynamodb:DescribeKinesisStreamingDestination",
+                      "dynamodb:BatchGetItem",
+                      "dynamodb:BatchWriteItem",
+                      "dynamodb:ConditionCheckItem",
+                      "dynamodb:PutItem",
+                      "dynamodb:Scan",
+                      "dynamodb:Query",
+                      "dynamodb:DescribeStream",
+                      "dynamodb:UpdateItem",
+                      "dynamodb:DescribeTimeToLive",
+                      "dynamodb:DescribeGlobalTableSettings",
+                      "dynamodb:GetShardIterator",
+                      "dynamodb:DescribeGlobalTable",
+                      "dynamodb:DescribeBackup",
+                      "dynamodb:GetRecords",
+                      "dynamodb:DescribeTableReplicaAutoScaling"
+                    ],
+                    "Resource": [
+                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-local-build-queue",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuilds}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuildsPackages}"
+                    ]
+                }
+            ]
+        }
+
+  IAMUserBuildServerBuilder:
+    Type: "AWS::IAM::User"
+    Properties:
+      Path: "/"
+      UserName: !Sub "archipelago-${env}-build-server-builder"
+      ManagedPolicyArns:
+        - !Ref IAMManagedPolicyBuildServerBuilder
+
+  IAMManagedPolicyBuildServerBuilder:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "archipelago-${env}-policy-build-server-builder"
+      Path: "/"
+      PolicyDocument: !Sub |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "IAMManagedPolicyBuildServerBuilder0",
+                    "Effect": "Allow",
+                    "Action": [
+                      "s3:*",
+                      "sqs:DeleteMessage",
+                      "sqs:SendMessageBatch",
+                      "sqs:ReceiveMessage",
+                      "sqs:ListQueueTags",
+                      "sqs:DeleteMessageBatch",
+                      "sqs:ChangeMessageVisibilityBatch",
+                      "sqs:SetQueueAttributes",
+                      "sqs:GetQueueUrl",
+                      "sqs:ChangeMessageVisibility",
+                      "sqs:SendMessage",
+                      "sqs:GetQueueAttributes",
+                      "sqs:ListDeadLetterSourceQueues",
+                      "sqs:PurgeQueue",
+                      "sqs:DeleteQueue",
+                      "sqs:CreateQueue",
+                      "dynamodb:DeleteItem",
+                      "dynamodb:DescribeContributorInsights",
+                      "dynamodb:ListTagsOfResource",
+                      "dynamodb:PartiQLSelect",
+                      "dynamodb:DescribeTable",
+                      "dynamodb:GetItem",
+                      "dynamodb:DescribeContinuousBackups",
+                      "dynamodb:DescribeExport",
+                      "dynamodb:DescribeKinesisStreamingDestination",
+                      "dynamodb:BatchGetItem",
+                      "dynamodb:BatchWriteItem",
+                      "dynamodb:ConditionCheckItem",
+                      "dynamodb:PutItem",
+                      "dynamodb:Scan",
+                      "dynamodb:Query",
+                      "dynamodb:DescribeStream",
+                      "dynamodb:UpdateItem",
+                      "dynamodb:DescribeTimeToLive",
+                      "dynamodb:DescribeGlobalTableSettings",
+                      "dynamodb:GetShardIterator",
+                      "dynamodb:DescribeGlobalTable",
+                      "dynamodb:DescribeBackup",
+                      "dynamodb:GetRecords",
+                      "dynamodb:DescribeTableReplicaAutoScaling"
+                    ],
+                    "Resource": [
+                        "arn:aws:s3:::*",
+                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-local-build-queue",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuilds}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuildsPackages}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountMapping}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccounts}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountsGit}"
+                    ]
+                }
+            ]
+        }
+
+  IAMUserHarborService:
+    Type: "AWS::IAM::User"
+    Properties:
+      Path: "/"
+      UserName: !Sub "archipelago-${env}-harbor-service"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+        - !Ref IAMManagedPolicyHarborService
+
+  IAMManagedPolicyHarborService:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "archipelago-${env}-policy-harbor-service"
+      Path: "/"
+      PolicyDocument: !Sub |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "IAMManagedPolicyHarborService0",
+                    "Effect": "Allow",
+                    "Action": [
+                      "dynamodb:DeleteItem",
+                      "dynamodb:DescribeContributorInsights",
+                      "dynamodb:ListTagsOfResource",
+                      "dynamodb:PartiQLSelect",
+                      "dynamodb:DescribeTable",
+                      "dynamodb:GetItem",
+                      "dynamodb:DescribeContinuousBackups",
+                      "dynamodb:DescribeExport",
+                      "dynamodb:DescribeKinesisStreamingDestination",
+                      "dynamodb:BatchGetItem",
+                      "dynamodb:BatchWriteItem",
+                      "dynamodb:ConditionCheckItem",
+                      "dynamodb:PutItem",
+                      "dynamodb:Scan",
+                      "dynamodb:Query",
+                      "dynamodb:DescribeStream",
+                      "dynamodb:UpdateItem",
+                      "dynamodb:DescribeTimeToLive",
+                      "dynamodb:DescribeGlobalTableSettings",
+                      "dynamodb:GetShardIterator",
+                      "dynamodb:DescribeGlobalTable",
+                      "dynamodb:DescribeBackup",
+                      "dynamodb:GetRecords",
+                      "dynamodb:DescribeTableReplicaAutoScaling"
+                    ],
+                    "Resource": [
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountMapping}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccounts}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountsGit}"
+                    ]
+                }
+            ]
+        }
+
   S3BucketStageLogs:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${env}-archipelago-build-log"
-      CorsConfiguration:
-        CorsRules:
-          - AllowedHeaders:
-              - "*"
-            AllowedMethods:
-              - "GET"
-            AllowedOrigins:
-              - "https://*.archipelago.build"
-              - "http://localhost:3000"
-              - "http://localhost"
+      BucketName: !Sub "archipelago-${env}-stage-log"
 
   S3BucketPackagesLogs:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${env}-archipelago-build-packages-log"
-      CorsConfiguration:
-        CorsRules:
-          - AllowedHeaders:
-              - "*"
-            AllowedMethods:
-              - "GET"
-            AllowedOrigins:
-              - "https://*.archipelago.build"
-              - "http://localhost:3000"
-              - "http://localhost"
+      BucketName: !Sub "archipelago-${env}-packages-log"
+
+  S3BucketPackagesArtifacts:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "archipelago-${env}-packages-artifacts"
 
   DynamoDBPackagesBuildsGit:
     Type: "AWS::DynamoDB::Table"
@@ -45,7 +344,7 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "lookup-key"
           AttributeType: "S"
-      TableName: !Sub "${env}.packages-builds-git"
+      TableName: !Sub "archipelago-${env}.packages-builds-git"
       KeySchema:
         - AttributeName: "lookup-key"
           KeyType: "HASH"
@@ -61,7 +360,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "package"
           AttributeType: "S"
-      TableName: !Sub "${env}.builds-packages"
+      TableName: !Sub "archipelago-${env}.builds-packages"
       KeySchema:
         - AttributeName: "build-id"
           KeyType: "HASH"
@@ -79,7 +378,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "build-id"
           AttributeType: "S"
-      TableName: !Sub "${env}.builds"
+      TableName: !Sub "archipelago-${env}.builds"
       KeySchema:
         - AttributeName: "account-id"
           KeyType: "HASH"
@@ -97,7 +396,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "version"
           AttributeType: "S"
-      TableName: !Sub "${env}.packages-versions"
+      TableName: !Sub "archipelago-${env}.packages-versions"
       KeySchema:
         - AttributeName: "package-name"
           KeyType: "HASH"
@@ -115,7 +414,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "package-name"
           AttributeType: "S"
-      TableName: !Sub "${env}.packages"
+      TableName: !Sub "archipelago-${env}.packages"
       KeySchema:
         - AttributeName: "account-id"
           KeyType: "HASH"
@@ -131,7 +430,7 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "user-id"
           AttributeType: "S"
-      TableName: !Sub "${env}.account-mapping"
+      TableName: !Sub "archipelago-${env}.account-mapping"
       KeySchema:
         - AttributeName: "user-id"
           KeyType: "HASH"
@@ -147,7 +446,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "name-version"
           AttributeType: "S"
-      TableName: !Sub "${env}.packages-builds"
+      TableName: !Sub "archipelago-${env}.packages-builds"
       KeySchema:
         - AttributeName: "name-version"
           KeyType: "HASH"
@@ -163,7 +462,7 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "account-id"
           AttributeType: "S"
-      TableName: !Sub "${env}.accounts"
+      TableName: !Sub "archipelago-${env}.accounts"
       KeySchema:
         - AttributeName: "account-id"
           KeyType: "HASH"
@@ -179,7 +478,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "revision"
           AttributeType: "S"
-      TableName: !Sub "${env}.version-set-revisions"
+      TableName: !Sub "archipelago-${env}.version-set-revisions"
       KeySchema:
         - AttributeName: "key"
           KeyType: "HASH"
@@ -197,7 +496,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "version-set-name"
           AttributeType: "S"
-      TableName: !Sub "${env}.version-sets"
+      TableName: !Sub "archipelago-${env}.version-sets"
       KeySchema:
         - AttributeName: "account-id"
           KeyType: "HASH"
@@ -213,7 +512,7 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "account-id"
           AttributeType: "S"
-      TableName: !Sub "${env}.accounts-git"
+      TableName: !Sub "archipelago-${env}.accounts-git"
       KeySchema:
         - AttributeName: "account-id"
           KeyType: "HASH"
@@ -229,4 +528,192 @@ Resources:
       MessageRetentionPeriod: "345600"
       ReceiveMessageWaitTimeSeconds: "0"
       VisibilityTimeout: "30"
-      QueueName: !Sub "${env}-archipelago-build-queue"
+      QueueName: !Sub "archipelago-build-${env}-build-queue"
+
+  CognitoUserPool:
+    Type: "AWS::Cognito::UserPool"
+    Properties:
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 7
+      UserPoolName: !Sub "archipelago-build-${env}-user-pool"
+      AliasAttributes:
+        - "email"
+        - "preferred_username"
+      AutoVerifiedAttributes:
+        - "email"
+      Schema:
+        - Name: "email"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: true
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+
+  S3BucketWWWS3:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${env}.archipelago.build"
+      WebsiteConfiguration:
+        ErrorDocument: "index.html"
+        IndexDocument: "index.html"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - "*"
+            Id: OpenCors
+            MaxAge: "3600"
+
+  Route53RecordSet:
+    Type: "AWS::Route53::RecordSet"
+    DependsOn: CloudFrontDistribution
+    Properties:
+      Name: !Sub "${env}.archipelago.build"
+      Type: "A"
+      AliasTarget:
+        HostedZoneId: "Z2FDTNDATAQYW2" # !Ref CloudFrontDistribution
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+      HostedZoneId: "Z08605472UPO1ZZD1OY00"
+
+  # Configure the bucket as a CloudFront Origin
+  ReadPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3BucketWWWS3
+      PolicyDocument:
+        Statement:
+          - Action: "s3:GetObject"
+            Effect: Allow
+            Resource: !Sub "arn:aws:s3:::${S3BucketWWWS3}/*"
+            Principal: "*"
+            # In an ideal scenario the policy would only grant these rights to CloudFront,
+            # we do not do it from scratch as many projects start without having a domain name specified
+            # and we want to test the code as soon as possible.
+            # Principal: CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+
+  # Configure Access to CloudFroun
+  CloudFrontOriginAccessIdentity:
+    Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref S3BucketWWWS3
+
+  # Configure CloudFront
+  CloudFrontDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Sub "${env}.archipelago.build"
+        CustomErrorResponses:
+          - ErrorCode: 403 # not found
+            ResponseCode: 404
+            ResponsePagePath: "/index.html"
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          DefaultTTL: 3600 # in seconds
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+          MaxTTL: 86400 # in seconds
+          MinTTL: 60 # in seconds
+          TargetOriginId: s3origin
+          ViewerProtocolPolicy: "allow-all"
+        # This DefaultRootObject configuration is not enough.
+        PriceClass: "PriceClass_100"
+        DefaultRootObject: "/index.html"
+        Enabled: true
+        HttpVersion: http2
+        ViewerCertificate:
+          AcmCertificateArn: !Sub "arn:aws:acm:us-east-1:${AWS::AccountId}:certificate/1e753be8-3446-45ce-9c23-1536060ea6dd"
+          MinimumProtocolVersion: "TLSv1.2_2019"
+          SslSupportMethod: "sni-only"
+        Origins:
+          - DomainName: !GetAtt "S3BucketWWWS3.DomainName"
+            Id: s3origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+
+  # Create an IAM user with Access Keys to enable automated deployment of the website to this bucket
+  PublishUser:
+    Type: "AWS::IAM::User"
+    Properties:
+      UserName: !Sub "archipelago-${env}-publisher"
+      Policies:
+        - PolicyName: !Sub "publish-to-${S3BucketWWWS3}"
+          PolicyDocument:
+            Statement:
+              - Action: "s3:*"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3BucketWWWS3}"
+                  - !Sub "arn:aws:s3:::${S3BucketWWWS3}/*"
+
+  PublishCredentials:
+    Type: "AWS::IAM::AccessKey"
+    Properties:
+      UserName: !Ref PublishUser
+
+Outputs:
+  VersionSetServiceId:
+    Description: "S3 Access Key"
+    Value: !Ref IAMUserVersionSetServer
+  # VersionSetServiceSecret:
+  #   Description: "S3 Secret Key"
+  #   Value: !GetAtt IAMUserVersionSetServer.SecretAccessKey
+  PackageServiceId:
+    Description: "S3 Access Key"
+    Value: !Ref IAMUserPackageService
+  # PackageServiceSecret:
+  #   Description: "S3 Secret Key"
+  #   Value: !GetAtt IAMUserPackageService.SecretAccessKey
+  BuildServerAPIId:
+    Description: "S3 Access Key"
+    Value: !Ref IAMUserBuildServerAPI
+  # BuildServerAPISecret:
+  #   Description: "S3 Secret Key"
+  #   Value: !GetAtt IAMUserBuildServerAPI.SecretAccessKey
+  BuildServerBuilderAPIId:
+    Description: "S3 Access Key"
+    Value: !Ref IAMUserBuildServerBuilder
+  # BuildServerBuilderSecret:
+  #   Description: "S3 Secret Key"
+  #   Value: !GetAtt IAMUserBuildServerBuilder.SecretAccessKey
+  HarborServiceId:
+    Description: "S3 Access Key"
+    Value: !Ref IAMUserHarborService
+  # HarborServiceSecret:
+  #   Description: "S3 Secret Key"
+  #   Value: !GetAtt IAMUserHarborService.SecretAccessKey
+  AccessKeyId:
+    Description: "S3 Access Key"
+    Value: !Ref PublishCredentials
+  # AccessKeySecret:
+  #   Description: "S3 Secret Key"
+  #   Value: !GetAtt PublishCredentials.SecretAccessKey
+  DistributionId:
+    Description: "CloudFront Distribution ID"
+    Value: !Ref CloudFrontDistribution
+  Domain:
+    Description: "Cloudfront Domain"
+    Value: !GetAtt CloudFrontDistribution.DomainName
