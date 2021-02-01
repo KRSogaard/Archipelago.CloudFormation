@@ -273,7 +273,6 @@ Resources:
       Path: "/"
       UserName: !Sub "archipelago-${env}-harbor-service"
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
         - !Ref IAMManagedPolicyHarborService
 
   IAMManagedPolicyHarborService:
@@ -318,6 +317,59 @@ Resources:
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountMapping}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccounts}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountsGit}"
+                    ]
+                }
+            ]
+        }
+
+  IAMUserAuthService:
+    Type: "AWS::IAM::User"
+    Properties:
+      Path: "/"
+      UserName: !Sub "archipelago-${env}-auth-service"
+      ManagedPolicyArns:
+        - !Ref IAMManagedPolicyAuthService
+
+  IAMManagedPolicyAuthService:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "archipelago-${env}-policy-auth-service"
+      Path: "/"
+      PolicyDocument: !Sub |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "IAMManagedPolicyAuthService0",
+                    "Effect": "Allow",
+                    "Action": [
+                      "dynamodb:DeleteItem",
+                      "dynamodb:DescribeContributorInsights",
+                      "dynamodb:ListTagsOfResource",
+                      "dynamodb:PartiQLSelect",
+                      "dynamodb:DescribeTable",
+                      "dynamodb:GetItem",
+                      "dynamodb:DescribeContinuousBackups",
+                      "dynamodb:DescribeExport",
+                      "dynamodb:DescribeKinesisStreamingDestination",
+                      "dynamodb:BatchGetItem",
+                      "dynamodb:BatchWriteItem",
+                      "dynamodb:ConditionCheckItem",
+                      "dynamodb:PutItem",
+                      "dynamodb:Scan",
+                      "dynamodb:Query",
+                      "dynamodb:DescribeStream",
+                      "dynamodb:UpdateItem",
+                      "dynamodb:DescribeTimeToLive",
+                      "dynamodb:DescribeGlobalTableSettings",
+                      "dynamodb:GetShardIterator",
+                      "dynamodb:DescribeGlobalTable",
+                      "dynamodb:DescribeBackup",
+                      "dynamodb:GetRecords",
+                      "dynamodb:DescribeTableReplicaAutoScaling"
+                    ],
+                    "Resource": [
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBUsers}"
                     ]
                 }
             ]
@@ -520,6 +572,20 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
+  DynamoDBUsers:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "user-id"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.users"
+      KeySchema:
+        - AttributeName: "user-id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
   SQSQueue:
     Type: "AWS::SQS::Queue"
     Properties:
@@ -529,33 +595,6 @@ Resources:
       ReceiveMessageWaitTimeSeconds: "0"
       VisibilityTimeout: "30"
       QueueName: !Sub "archipelago-build-${env}-build-queue"
-
-  CognitoUserPool:
-    Type: "AWS::Cognito::UserPool"
-    Properties:
-      Policies:
-        PasswordPolicy:
-          MinimumLength: 8
-          RequireUppercase: true
-          RequireLowercase: true
-          RequireNumbers: true
-          RequireSymbols: true
-          TemporaryPasswordValidityDays: 7
-      UserPoolName: !Sub "archipelago-build-${env}-user-pool"
-      AliasAttributes:
-        - "email"
-        - "preferred_username"
-      AutoVerifiedAttributes:
-        - "email"
-      Schema:
-        - Name: "email"
-          AttributeDataType: "String"
-          DeveloperOnlyAttribute: false
-          Mutable: true
-          Required: true
-          StringAttributeConstraints:
-            MinLength: "0"
-            MaxLength: "2048"
 
   S3BucketWWWS3:
     Type: "AWS::S3::Bucket"
