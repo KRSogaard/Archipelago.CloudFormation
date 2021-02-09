@@ -369,7 +369,11 @@ Resources:
                       "dynamodb:DescribeTableReplicaAutoScaling"
                     ],
                     "Resource": [
-                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBUsers}"
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBUsers}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAuthCodes}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAuthClients}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAuthKeys}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBUsers}/index/gsiEmail"                        
                     ]
                 }
             ]
@@ -389,6 +393,78 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Sub "archipelago-${env}-packages-artifacts"
+
+  DynamoDBAuthCodes:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "auth-code"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.auth-codes"
+      KeySchema:
+        - AttributeName: "auth-code"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBAuthKeys:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "kid"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.auth-jwks"
+      KeySchema:
+        - AttributeName: "kid"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DynamoDBUsers:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "user-id"
+          AttributeType: "S"
+        - AttributeName: "email"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.auth-users"
+      KeySchema:
+        - AttributeName: "user-id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      GlobalSecondaryIndexes:
+        - IndexName: gsiEmail
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+          Projection:
+            NonKeyAttributes:
+              - "user-id"
+              - "password"
+              - "password-salt"
+            ProjectionType: INCLUDE
+
+  DynamoDBAuthClients:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "client-id"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.auth-clients"
+      KeySchema:
+        - AttributeName: "client-id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
 
   DynamoDBPackagesBuildsGit:
     Type: "AWS::DynamoDB::Table"
@@ -567,20 +643,6 @@ Resources:
       TableName: !Sub "archipelago-${env}.accounts-git"
       KeySchema:
         - AttributeName: "account-id"
-          KeyType: "HASH"
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-
-  DynamoDBUsers:
-    Type: "AWS::DynamoDB::Table"
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: "user-id"
-          AttributeType: "S"
-      TableName: !Sub "archipelago-${env}.users"
-      KeySchema:
-        - AttributeName: "user-id"
           KeyType: "HASH"
       ProvisionedThroughput:
         ReadCapacityUnits: 5
