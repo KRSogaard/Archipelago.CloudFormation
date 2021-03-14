@@ -143,6 +143,7 @@ Resources:
                     "Sid": "IAMManagedPolicyBuildServerAPI0",
                     "Effect": "Allow",
                     "Action": [
+                      "s3:*",
                       "sqs:DeleteMessage",
                       "sqs:SendMessageBatch",
                       "sqs:ReceiveMessage",
@@ -184,6 +185,7 @@ Resources:
                       "dynamodb:DescribeTableReplicaAutoScaling"
                     ],
                     "Resource": [
+                        "arn:aws:s3:::*",
                         "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-local-build-queue",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuilds}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuildsPackages}"
@@ -373,7 +375,10 @@ Resources:
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAuthCodes}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAuthClients}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAuthKeys}",
-                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBUsers}/index/gsiEmail"                        
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBUsers}/index/gsiEmail",  
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountMapping}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccounts}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountsGit}"                
                     ]
                 }
             ]
@@ -383,16 +388,40 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Sub "archipelago-${env}-stage-log"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedHeaders:
+              - "*"
 
   S3BucketPackagesLogs:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Sub "archipelago-${env}-packages-log"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedHeaders:
+              - "*"
 
   S3BucketPackagesArtifacts:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Sub "archipelago-${env}-packages-artifacts"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedHeaders:
+              - "*"
 
   DynamoDBAuthCodes:
     Type: "AWS::DynamoDB::Table"
@@ -562,6 +591,8 @@ Resources:
       KeySchema:
         - AttributeName: "user-id"
           KeyType: "HASH"
+        - AttributeName: "account-id"
+          KeyType: "RANGE"
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
