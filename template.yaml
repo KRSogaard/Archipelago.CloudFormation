@@ -120,6 +120,7 @@ Resources:
                     "Resource": [
                         "arn:aws:s3:::*",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackages}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPublicPackages}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesBuildsGit}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesBuilds}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesVersions}",
@@ -588,6 +589,20 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
+  DynamoDBPublicPackages:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "package-name"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.public-packages"
+      KeySchema:
+        - AttributeName: "package-name"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
   DynamoDBAccountMapping:
     Type: "AWS::DynamoDB::Table"
     Properties:
@@ -596,7 +611,7 @@ Resources:
           AttributeType: "S"
         - AttributeName: "account-id"
           AttributeType: "S"
-      TableName: !Sub "archipelago-${env}.account-mapping"
+      TableName: !Sub "archipelago-${env}.accounts-mapping"
       KeySchema:
         - AttributeName: "user-id"
           KeyType: "HASH"
@@ -814,172 +829,3 @@ Resources:
     Type: "AWS::IAM::AccessKey"
     Properties:
       UserName: !Ref PublishUser
-
-  # Kubernetes
-  eksVPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: 10.0.0.0/16
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: !Sub "archipelago-${env}-eks-vpc"
-        - Key: Project
-          Value: !Sub "archipelago-${env}-eks"
-
-  eksInternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties:
-      Tags:
-        - Key: Name
-          Value: !Sub "archipelago-${env}-eks-InternetGateway"
-        - Key: Project
-          Value: !Sub "archipelago-${env}-eks"
-
-  eksVPCGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      InternetGatewayId: !Ref eksInternetGateway
-      VpcId: !Ref eksVPC
-
-  eksPublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref eksVPC
-      Tags:
-        - Key: Name
-          Value: !Sub "archipelago-${env}-eks-RouteTable"
-        - Key: Project
-          Value: !Sub "archipelago-${env}-eks"
-
-  eksPublicRoute:
-    DependsOn: eksVPCGatewayAttachment
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref eksPublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref eksInternetGateway
-
-  eksPublicSubnet01:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: us-west-2a
-      MapPublicIpOnLaunch: true
-      CidrBlock: 10.0.0.0/24
-      VpcId:
-        Ref: eksVPC
-      Tags:
-        - Key: Name
-          Value: !Sub "archipelago-${env}-eks-PublicSubnet01"
-        - Key: Project
-          Value: !Sub "archipelago-${env}-eks"
-
-  eksPublicSubnet02:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: us-west-2b
-      MapPublicIpOnLaunch: true
-      CidrBlock: 10.0.1.0/24
-      VpcId:
-        Ref: eksVPC
-      Tags:
-        - Key: Name
-          Value: !Sub "archipelago-${env}-eks-PublicSubnet02"
-        - Key: Project
-          Value: !Sub "archipelago-${env}-eks"
-
-  eksPublicSubnet01RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref eksPublicSubnet01
-      RouteTableId: !Ref eksPublicRouteTable
-
-  eksPublicSubnet02RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref eksPublicSubnet02
-      RouteTableId: !Ref eksPublicRouteTable
-
-  eksSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Cluster communication with worker nodes
-      VpcId: !Ref eksVPC
-      Tags:
-        - Key: Name
-          Value: !Sub "archipelago-${env}-eks-SecurityGroup"
-        - Key: Project
-          Value: !Sub "archipelago-${env}-eks"
-
-  eksIAMRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - eks.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      RoleName: EKSClusterRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-
-  eksCluster:
-    Type: AWS::EKS::Cluster
-    Properties:
-      Name: !Sub "archipelago-${env}-eks"
-      Version: 1.18
-      RoleArn:
-        "Fn::GetAtt": ["eksIAMRole", "Arn"]
-      ResourcesVpcConfig:
-        SecurityGroupIds:
-          - !Ref eksSecurityGroup
-        SubnetIds:
-          - !Ref eksPublicSubnet01
-          - !Ref eksPublicSubnet02
-    DependsOn: [eksIAMRole, eksPublicSubnet01, eksPublicSubnet02, eksSecurityGroup]
-
-  eksNodeInstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - !FindInMap [ServicePrincipals, !Ref "AWS::Partition", ec2]
-            Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-      Path: /
-
-  eksNodeGroup:
-    Type: AWS::EKS::Nodegroup
-    Properties:
-      ClusterName: !Sub "archipelago-${env}-eks"
-      NodeRole:
-        "Fn::GetAtt": ["eksNodeInstanceRole", "Arn"]
-      AmiType: AL2_x86_64
-      InstanceTypes:
-        - t3.medium
-      NodegroupName: !Sub "archipelago-${env}-eks-NodeGroup01"
-      RemoteAccess:
-        Ec2SshKey: !Sub "archipelago-${env}-eks-key"
-      ScalingConfig:
-        MinSize: 1
-        DesiredSize: 2
-        MaxSize: 3
-      Labels:
-        Project: !Sub "archipelago-${env}-eks"
-      Subnets:
-        - !Ref eksPublicSubnet01
-        - !Ref eksPublicSubnet02
-    DependsOn: [eksCluster, eksNodeInstanceRole]
