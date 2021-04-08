@@ -10,7 +10,7 @@ Mappings:
 
 Resources:
   # Kubernetes
-  ecsVPC:
+  eksVPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
@@ -18,95 +18,95 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Sub "archipelago-ecs-vpc"
+          Value: !Sub "archipelago-eks-vpc"
         - Key: Project
-          Value: !Sub "archipelago-ecs"
+          Value: !Sub "archipelago-eks"
 
-  ecsInternetGateway:
+  eksInternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub "archipelago-ecs-InternetGateway"
+          Value: !Sub "archipelago-eks-InternetGateway"
         - Key: Project
-          Value: !Sub "archipelago-ecs"
+          Value: !Sub "archipelago-eks"
 
-  ecsVPCGatewayAttachment:
+  eksVPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      InternetGatewayId: !Ref ecsInternetGateway
-      VpcId: !Ref ecsVPC
+      InternetGatewayId: !Ref eksInternetGateway
+      VpcId: !Ref eksVPC
 
-  ecsPublicRouteTable:
+  eksPublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref ecsVPC
+      VpcId: !Ref eksVPC
       Tags:
         - Key: Name
-          Value: !Sub "archipelago-ecs-RouteTable"
+          Value: !Sub "archipelago-eks-RouteTable"
         - Key: Project
-          Value: !Sub "archipelago-ecs"
+          Value: !Sub "archipelago-eks"
 
-  ecsPublicRoute:
-    DependsOn: ecsVPCGatewayAttachment
+  eksPublicRoute:
+    DependsOn: eksVPCGatewayAttachment
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref ecsPublicRouteTable
+      RouteTableId: !Ref eksPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref ecsInternetGateway
+      GatewayId: !Ref eksInternetGateway
 
-  ecsPublicSubnet01:
+  eksPublicSubnet01:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: us-west-2a
       MapPublicIpOnLaunch: true
       CidrBlock: 10.0.0.0/24
       VpcId:
-        Ref: ecsVPC
+        Ref: eksVPC
       Tags:
         - Key: Name
-          Value: !Sub "archipelago-ecs-PublicSubnet01"
+          Value: !Sub "archipelago-eks-PublicSubnet01"
         - Key: Project
-          Value: !Sub "archipelago-ecs"
+          Value: !Sub "archipelago-eks"
 
-  ecsPublicSubnet02:
+  eksPublicSubnet02:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: us-west-2b
       MapPublicIpOnLaunch: true
       CidrBlock: 10.0.1.0/24
       VpcId:
-        Ref: ecsVPC
+        Ref: eksVPC
       Tags:
         - Key: Name
-          Value: !Sub "archipelago-ecs-PublicSubnet02"
+          Value: !Sub "archipelago-eks-PublicSubnet02"
         - Key: Project
-          Value: !Sub "archipelago-ecs"
+          Value: !Sub "archipelago-eks"
 
-  ecsPublicSubnet01RouteTableAssociation:
+  eksPublicSubnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref ecsPublicSubnet01
-      RouteTableId: !Ref ecsPublicRouteTable
+      SubnetId: !Ref eksPublicSubnet01
+      RouteTableId: !Ref eksPublicRouteTable
 
-  ecsPublicSubnet02RouteTableAssociation:
+  eksPublicSubnet02RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref ecsPublicSubnet02
-      RouteTableId: !Ref ecsPublicRouteTable
+      SubnetId: !Ref eksPublicSubnet02
+      RouteTableId: !Ref eksPublicRouteTable
 
-  ecsSecurityGroup:
+  eksSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Cluster communication with worker nodes
-      VpcId: !Ref ecsVPC
+      VpcId: !Ref eksVPC
       Tags:
         - Key: Name
-          Value: !Sub "archipelago-ecs-SecurityGroup"
+          Value: !Sub "archipelago-eks-SecurityGroup"
         - Key: Project
-          Value: !Sub "archipelago-ecs"
+          Value: !Sub "archipelago-eks"
 
-  ecsIAMRole:
+  eksIAMRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -115,31 +115,29 @@ Resources:
           - Effect: Allow
             Principal:
               Service:
-                - ecs.amazonaws.com
+                - eks.amazonaws.com
             Action:
               - "sts:AssumeRole"
       RoleName: EKSClusterRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
 
-  
-
-  ecsCluster:
+  eksCluster:
     Type: AWS::EKS::Cluster
     Properties:
-      Name: !Sub "archipelago-ecs"
+      Name: !Sub "archipelago-eks"
       Version: 1.19
       RoleArn:
-        "Fn::GetAtt": ["ecsIAMRole", "Arn"]
+        "Fn::GetAtt": ["eksIAMRole", "Arn"]
       ResourcesVpcConfig:
         SecurityGroupIds:
-          - !Ref ecsSecurityGroup
+          - !Ref eksSecurityGroup
         SubnetIds:
-          - !Ref ecsPublicSubnet01
-          - !Ref ecsPublicSubnet02
-    DependsOn: [ecsIAMRole, ecsPublicSubnet01, ecsPublicSubnet02, ecsSecurityGroup]
+          - !Ref eksPublicSubnet01
+          - !Ref eksPublicSubnet02
+    DependsOn: [eksIAMRole, eksPublicSubnet01, eksPublicSubnet02, eksSecurityGroup]
 
-  ecsNodeInstanceRole:
+  eksNodeInstanceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -157,25 +155,25 @@ Resources:
         - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
       Path: /
 
-  ecsNodeGroup:
+  eksNodeGroup:
     Type: AWS::EKS::Nodegroup
     Properties:
-      ClusterName: !Sub "archipelago-ecs"
+      ClusterName: !Sub "archipelago-eks"
       NodeRole:
-        "Fn::GetAtt": ["ecsNodeInstanceRole", "Arn"]
+        "Fn::GetAtt": ["eksNodeInstanceRole", "Arn"]
       AmiType: AL2_x86_64
       InstanceTypes:
         - t3a.medium
-      NodegroupName: !Sub "archipelago-ecs-NodeGroup01"
+      NodegroupName: !Sub "archipelago-eks-NodeGroup01"
       RemoteAccess:
-        Ec2SshKey: !Sub "archipelago-ecs-key"
+        Ec2SshKey: !Sub "archipelago-eks-key"
       ScalingConfig:
         MinSize: 1
         DesiredSize: 1
         MaxSize: 3
       Labels:
-        Project: !Sub "archipelago-ecs"
+        Project: !Sub "archipelago-eks"
       Subnets:
-        - !Ref ecsPublicSubnet01
-        - !Ref ecsPublicSubnet02
-    DependsOn: [ecsCluster, ecsNodeInstanceRole]
+        - !Ref eksPublicSubnet01
+        - !Ref eksPublicSubnet02
+    DependsOn: [eksCluster, eksNodeInstanceRole]

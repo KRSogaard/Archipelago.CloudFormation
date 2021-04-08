@@ -194,7 +194,7 @@ Resources:
                     ],
                     "Resource": [
                         "arn:aws:s3:::*",
-                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-local-build-queue",
+                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-${env}-build-queue",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuilds}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuildsPackages}"
                     ]
@@ -266,7 +266,7 @@ Resources:
                     ],
                     "Resource": [
                         "arn:aws:s3:::*",
-                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-local-build-queue",
+                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-${env}-build-queue",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuilds}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuildsPackages}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountMapping}",
@@ -442,8 +442,8 @@ Resources:
         - AttributeName: "auth-code"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAuthKeys:
     Type: "AWS::DynamoDB::Table"
@@ -456,8 +456,8 @@ Resources:
         - AttributeName: "kid"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBUsers:
     Type: "AWS::DynamoDB::Table"
@@ -472,16 +472,16 @@ Resources:
         - AttributeName: "user-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
       GlobalSecondaryIndexes:
         - IndexName: gsiEmail
           KeySchema:
             - AttributeName: email
               KeyType: HASH
           ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
+            ReadCapacityUnits: 2
+            WriteCapacityUnits: 2
           Projection:
             NonKeyAttributes:
               - "user-id"
@@ -500,8 +500,8 @@ Resources:
         - AttributeName: "client-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackagesBuildsGit:
     Type: "AWS::DynamoDB::Table"
@@ -514,8 +514,8 @@ Resources:
         - AttributeName: "lookup-key"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBBuildsPackages:
     Type: "AWS::DynamoDB::Table"
@@ -532,8 +532,8 @@ Resources:
         - AttributeName: "package"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBBuilds:
     Type: "AWS::DynamoDB::Table"
@@ -550,8 +550,8 @@ Resources:
         - AttributeName: "build-id"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackagesVersions:
     Type: "AWS::DynamoDB::Table"
@@ -568,8 +568,8 @@ Resources:
         - AttributeName: "version"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackages:
     Type: "AWS::DynamoDB::Table"
@@ -586,8 +586,8 @@ Resources:
         - AttributeName: "package-name"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPublicPackages:
     Type: "AWS::DynamoDB::Table"
@@ -600,8 +600,8 @@ Resources:
         - AttributeName: "package-name"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAccountMapping:
     Type: "AWS::DynamoDB::Table"
@@ -618,8 +618,8 @@ Resources:
         - AttributeName: "account-id"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackagesBuilds:
     Type: "AWS::DynamoDB::Table"
@@ -636,8 +636,8 @@ Resources:
         - AttributeName: "hash"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAccounts:
     Type: "AWS::DynamoDB::Table"
@@ -650,8 +650,8 @@ Resources:
         - AttributeName: "account-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBVersionSetRevisions:
     Type: "AWS::DynamoDB::Table"
@@ -668,8 +668,8 @@ Resources:
         - AttributeName: "revision"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBVersionSets:
     Type: "AWS::DynamoDB::Table"
@@ -686,8 +686,8 @@ Resources:
         - AttributeName: "version-set-name"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAccountsGit:
     Type: "AWS::DynamoDB::Table"
@@ -700,8 +700,8 @@ Resources:
         - AttributeName: "account-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   SQSQueue:
     Type: "AWS::SQS::Queue"
