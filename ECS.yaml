@@ -222,11 +222,11 @@ Resources:
   TargetGroupPackageService:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 120
       # will look for a 200 status code by default unless specified otherwise
       HealthCheckPath: "/health-check"
       HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 10
+      UnhealthyThresholdCount: 3
       HealthyThresholdCount: 2
       Name: !Sub "archi-${env}-package-service-tg"
       Port: 8080
@@ -247,7 +247,7 @@ Resources:
       Port: 443
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/d2749c0a-5e25-4eb6-a722-188b8db75f37"
+        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/f8ac73f3-5be5-4e0a-a944-eef6421c0ef9"
 
   DNSRecordPackageService:
     Type: AWS::Route53::RecordSet
@@ -307,7 +307,7 @@ Resources:
       LogGroupName: !Join ["", [/ecs/, "package-service", TaskDefinition]]
       RetentionInDays: 3
 
-# Version Set Service
+  # Version Set Service
   ServiceVersionSetService:
     Type: AWS::ECS::Service
     DependsOn:
@@ -368,11 +368,11 @@ Resources:
   TargetGroupVersionSetService:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 120
       # will look for a 200 status code by default unless specified otherwise
       HealthCheckPath: "/health-check"
       HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 10
+      UnhealthyThresholdCount: 3
       HealthyThresholdCount: 2
       Name: !Sub "archi-${env}-vs-tg"
       Port: 8080
@@ -393,7 +393,7 @@ Resources:
       Port: 443
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/d2749c0a-5e25-4eb6-a722-188b8db75f37"
+        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/f8ac73f3-5be5-4e0a-a944-eef6421c0ef9"
 
   DNSRecordVersionSetService:
     Type: AWS::Route53::RecordSet
@@ -427,7 +427,10 @@ Resources:
       MinCapacity: 1
       MaxCapacity: 2
       ResourceId:
-        !Join ["/", [service, !Ref Cluster, !GetAtt ServiceVersionSetService.Name]]
+        !Join [
+          "/",
+          [service, !Ref Cluster, !GetAtt ServiceVersionSetService.Name],
+        ]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
       # "The Amazon Resource Name (ARN) of an AWS Identity and Access Management (IAM) role that allows Application Auto Scaling to modify your scalable target."
@@ -453,7 +456,7 @@ Resources:
       LogGroupName: !Join ["", [/ecs/, "version-set-service", TaskDefinition]]
       RetentionInDays: 3
 
-# Harbor Service
+  # Harbor Service
   ServiceHarborService:
     Type: AWS::ECS::Service
     DependsOn:
@@ -514,11 +517,11 @@ Resources:
   TargetGroupHarborService:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 120
       # will look for a 200 status code by default unless specified otherwise
       HealthCheckPath: "/health-check"
       HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 10
+      UnhealthyThresholdCount: 3
       HealthyThresholdCount: 2
       Name: !Sub "archi-${env}-hb-tg"
       Port: 8080
@@ -539,13 +542,13 @@ Resources:
       Port: 443
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/d2749c0a-5e25-4eb6-a722-188b8db75f37"
+        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/f8ac73f3-5be5-4e0a-a944-eef6421c0ef9"
 
   DNSRecordHarborService:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneName: "archipelago.build."
-      Name: !Sub "harbor-service.${env}.archipelago.build."
+      Name: !Sub "harbor.${env}.archipelago.build."
       Type: A
       AliasTarget:
         DNSName: !GetAtt LoadBalancerHarborService.DNSName
@@ -599,7 +602,7 @@ Resources:
       LogGroupName: !Join ["", [/ecs/, "harbor-service", TaskDefinition]]
       RetentionInDays: 3
 
-# Auth Service
+  # Auth Service
   ServiceAuthService:
     Type: AWS::ECS::Service
     DependsOn:
@@ -660,11 +663,11 @@ Resources:
   TargetGroupAuthService:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 120
       # will look for a 200 status code by default unless specified otherwise
       HealthCheckPath: "/health-check"
       HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 10
+      UnhealthyThresholdCount: 3
       HealthyThresholdCount: 2
       Name: !Sub "archi-${env}-auth-tg"
       Port: 8080
@@ -685,7 +688,7 @@ Resources:
       Port: 443
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/d2749c0a-5e25-4eb6-a722-188b8db75f37"
+        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/f8ac73f3-5be5-4e0a-a944-eef6421c0ef9"
 
   DNSRecordAuthService:
     Type: AWS::Route53::RecordSet
@@ -745,7 +748,7 @@ Resources:
       LogGroupName: !Join ["", [/ecs/, "auth-service", TaskDefinition]]
       RetentionInDays: 3
 
-# Build API Service
+  # Build API Service
   ServiceBuildServiceAPI:
     Type: AWS::ECS::Service
     DependsOn:
@@ -806,11 +809,11 @@ Resources:
   TargetGroupBuildServiceAPI:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 120
       # will look for a 200 status code by default unless specified otherwise
       HealthCheckPath: "/health-check"
       HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 10
+      UnhealthyThresholdCount: 3
       HealthyThresholdCount: 2
       Name: !Sub "archi-${env}-build-api-tg"
       Port: 8080
@@ -831,7 +834,7 @@ Resources:
       Port: 443
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/d2749c0a-5e25-4eb6-a722-188b8db75f37"
+        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/f8ac73f3-5be5-4e0a-a944-eef6421c0ef9"
 
   DNSRecordBuildServiceAPI:
     Type: AWS::Route53::RecordSet
@@ -865,7 +868,10 @@ Resources:
       MinCapacity: 1
       MaxCapacity: 2
       ResourceId:
-        !Join ["/", [service, !Ref Cluster, !GetAtt ServiceBuildServiceAPI.Name]]
+        !Join [
+          "/",
+          [service, !Ref Cluster, !GetAtt ServiceBuildServiceAPI.Name],
+        ]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
       # "The Amazon Resource Name (ARN) of an AWS Identity and Access Management (IAM) role that allows Application Auto Scaling to modify your scalable target."
@@ -891,7 +897,7 @@ Resources:
       LogGroupName: !Join ["", [/ecs/, "build-service-api", TaskDefinition]]
       RetentionInDays: 3
 
-# Build Service Builder
+  # Build Service Builder
   ServiceBuildServiceBuilder:
     Type: AWS::ECS::Service
     DependsOn:
@@ -929,8 +935,8 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-      Cpu: 256
-      Memory: 0.5GB
+      Cpu: 1024
+      Memory: 2.0GB
       ExecutionRoleArn: !Ref ExecutionRole
       TaskRoleArn: !Ref TaskRole
       ContainerDefinitions:
@@ -952,11 +958,11 @@ Resources:
   TargetGroupBuildServiceBuilder:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 120
       # will look for a 200 status code by default unless specified otherwise
       HealthCheckPath: "/health-check"
       HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 10
+      UnhealthyThresholdCount: 3
       HealthyThresholdCount: 2
       Name: !Sub "archi-${env}-bs-tg"
       Port: 8080
@@ -977,7 +983,7 @@ Resources:
       Port: 443
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/d2749c0a-5e25-4eb6-a722-188b8db75f37"
+        - CertificateArn: "arn:aws:acm:us-west-2:075174350620:certificate/f8ac73f3-5be5-4e0a-a944-eef6421c0ef9"
 
   DNSRecordBuildServiceBuilder:
     Type: AWS::Route53::RecordSet
@@ -1011,7 +1017,10 @@ Resources:
       MinCapacity: 1
       MaxCapacity: 2
       ResourceId:
-        !Join ["/", [service, !Ref Cluster, !GetAtt ServiceBuildServiceBuilder.Name]]
+        !Join [
+          "/",
+          [service, !Ref Cluster, !GetAtt ServiceBuildServiceBuilder.Name],
+        ]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
       # "The Amazon Resource Name (ARN) of an AWS Identity and Access Management (IAM) role that allows Application Auto Scaling to modify your scalable target."
