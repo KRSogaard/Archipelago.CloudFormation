@@ -8,6 +8,13 @@ Parameters:
     Type: "String"
     Default: "local"
 
+Mappings:
+  ServicePrincipals:
+    aws-cn:
+      ec2: ec2.amazonaws.com.cn
+    aws:
+      ec2: ec2.amazonaws.com
+
 Resources:
   IAMUserVersionSetServer:
     Type: "AWS::IAM::User"
@@ -113,6 +120,7 @@ Resources:
                     "Resource": [
                         "arn:aws:s3:::*",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackages}",
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPublicPackages}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesBuildsGit}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesBuilds}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBPackagesVersions}",
@@ -186,7 +194,7 @@ Resources:
                     ],
                     "Resource": [
                         "arn:aws:s3:::*",
-                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-local-build-queue",
+                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-${env}-build-queue",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuilds}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuildsPackages}"
                     ]
@@ -258,7 +266,7 @@ Resources:
                     ],
                     "Resource": [
                         "arn:aws:s3:::*",
-                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-local-build-queue",
+                        "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:archipelago-build-${env}-build-queue",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuilds}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBBuildsPackages}",
                         "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBAccountMapping}",
@@ -434,8 +442,8 @@ Resources:
         - AttributeName: "auth-code"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAuthKeys:
     Type: "AWS::DynamoDB::Table"
@@ -448,8 +456,8 @@ Resources:
         - AttributeName: "kid"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBUsers:
     Type: "AWS::DynamoDB::Table"
@@ -464,16 +472,16 @@ Resources:
         - AttributeName: "user-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
       GlobalSecondaryIndexes:
         - IndexName: gsiEmail
           KeySchema:
             - AttributeName: email
               KeyType: HASH
           ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
+            ReadCapacityUnits: 2
+            WriteCapacityUnits: 2
           Projection:
             NonKeyAttributes:
               - "user-id"
@@ -492,8 +500,8 @@ Resources:
         - AttributeName: "client-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackagesBuildsGit:
     Type: "AWS::DynamoDB::Table"
@@ -506,8 +514,8 @@ Resources:
         - AttributeName: "lookup-key"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBBuildsPackages:
     Type: "AWS::DynamoDB::Table"
@@ -524,8 +532,8 @@ Resources:
         - AttributeName: "package"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBBuilds:
     Type: "AWS::DynamoDB::Table"
@@ -542,8 +550,8 @@ Resources:
         - AttributeName: "build-id"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackagesVersions:
     Type: "AWS::DynamoDB::Table"
@@ -560,8 +568,8 @@ Resources:
         - AttributeName: "version"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackages:
     Type: "AWS::DynamoDB::Table"
@@ -578,8 +586,22 @@ Resources:
         - AttributeName: "package-name"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+  DynamoDBPublicPackages:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "package-name"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.public-packages"
+      KeySchema:
+        - AttributeName: "package-name"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAccountMapping:
     Type: "AWS::DynamoDB::Table"
@@ -587,15 +609,17 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "user-id"
           AttributeType: "S"
-      TableName: !Sub "archipelago-${env}.account-mapping"
+        - AttributeName: "account-id"
+          AttributeType: "S"
+      TableName: !Sub "archipelago-${env}.accounts-mapping"
       KeySchema:
         - AttributeName: "user-id"
           KeyType: "HASH"
         - AttributeName: "account-id"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBPackagesBuilds:
     Type: "AWS::DynamoDB::Table"
@@ -612,8 +636,8 @@ Resources:
         - AttributeName: "hash"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAccounts:
     Type: "AWS::DynamoDB::Table"
@@ -626,8 +650,8 @@ Resources:
         - AttributeName: "account-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBVersionSetRevisions:
     Type: "AWS::DynamoDB::Table"
@@ -644,8 +668,8 @@ Resources:
         - AttributeName: "revision"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBVersionSets:
     Type: "AWS::DynamoDB::Table"
@@ -662,8 +686,8 @@ Resources:
         - AttributeName: "version-set-name"
           KeyType: "RANGE"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   DynamoDBAccountsGit:
     Type: "AWS::DynamoDB::Table"
@@ -676,8 +700,8 @@ Resources:
         - AttributeName: "account-id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
   SQSQueue:
     Type: "AWS::SQS::Queue"
@@ -805,47 +829,3 @@ Resources:
     Type: "AWS::IAM::AccessKey"
     Properties:
       UserName: !Ref PublishUser
-
-Outputs:
-  VersionSetServiceId:
-    Description: "S3 Access Key"
-    Value: !Ref IAMUserVersionSetServer
-  # VersionSetServiceSecret:
-  #   Description: "S3 Secret Key"
-  #   Value: !GetAtt IAMUserVersionSetServer.SecretAccessKey
-  PackageServiceId:
-    Description: "S3 Access Key"
-    Value: !Ref IAMUserPackageService
-  # PackageServiceSecret:
-  #   Description: "S3 Secret Key"
-  #   Value: !GetAtt IAMUserPackageService.SecretAccessKey
-  BuildServerAPIId:
-    Description: "S3 Access Key"
-    Value: !Ref IAMUserBuildServerAPI
-  # BuildServerAPISecret:
-  #   Description: "S3 Secret Key"
-  #   Value: !GetAtt IAMUserBuildServerAPI.SecretAccessKey
-  BuildServerBuilderAPIId:
-    Description: "S3 Access Key"
-    Value: !Ref IAMUserBuildServerBuilder
-  # BuildServerBuilderSecret:
-  #   Description: "S3 Secret Key"
-  #   Value: !GetAtt IAMUserBuildServerBuilder.SecretAccessKey
-  HarborServiceId:
-    Description: "S3 Access Key"
-    Value: !Ref IAMUserHarborService
-  # HarborServiceSecret:
-  #   Description: "S3 Secret Key"
-  #   Value: !GetAtt IAMUserHarborService.SecretAccessKey
-  AccessKeyId:
-    Description: "S3 Access Key"
-    Value: !Ref PublishCredentials
-  # AccessKeySecret:
-  #   Description: "S3 Secret Key"
-  #   Value: !GetAtt PublishCredentials.SecretAccessKey
-  DistributionId:
-    Description: "CloudFront Distribution ID"
-    Value: !Ref CloudFrontDistribution
-  Domain:
-    Description: "Cloudfront Domain"
-    Value: !GetAtt CloudFrontDistribution.DomainName
